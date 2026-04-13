@@ -112,44 +112,44 @@ This project demonstrates real-world HR workflow with role-based access and appr
 
 ### 🧑‍💼 Employee Dashboard
 
-![Dashboard](screenshots/apply_leave.png)
+![Dashboard](attendance-leave-screenshot/apply_leave.png)
 
 ### 📝 Apply Leave
 
-![Apply](screenshots/add_leaves.png)
+![Apply](attendance-leave-screenshot/add_leaves.png)
 
 ### 📋 Leave Details
 
-![Details](screenshots/add_leaves_details.png)
+![Details](attendance-leave-screenshot/add_leaves_details.png)
 
 ### ✅ Approval Panel
 
-![Approval](screenshots/approval.png)
+![Approval](attendance-leave-screenshot/approval.png)
 
 ### 📊 Monthly Dashboard
 
-![Monthly](screenshots/monthly_dashboard.png)
+![Monthly](attendance-leave-screenshot/All_employees_monthly_leave_dashboard.png)
 
 ### 📄 All Leaves
 
-![All Leaves](screenshots/all_leaves.png)
+![All Leaves](attendance-leave-screenshot/all_leaves.png)
 
 ### 👥 Employee Details
 
-![Employees](screenshots/AllEmployee_Details.png)
+![Employees](attendance-leave-screenshot/AllEmployee_Details.png)
 
 ### 📈 Reports
 
-![Report](screenshots/report.png)
+![Report](attendance-leave-screenshot/report.png)
 
 ### 📅 Yearly Leave
 
-![Yearly](screenshots/yearly.png)
+![Yearly](attendance-leave-screenshot/yearly.png)
 
 ### ⚙️ Weekend Off Management
 
-![Weekend](screenshots/weekend_off.png)
+![Weekend](attendance-leave-screenshot/weekend_off.png)
 
 ### 📆 Roster Management
 
-![Roster](screenshots/add_roster.png)
+![Roster](attendance-leave-screenshot/add_roster.png)
