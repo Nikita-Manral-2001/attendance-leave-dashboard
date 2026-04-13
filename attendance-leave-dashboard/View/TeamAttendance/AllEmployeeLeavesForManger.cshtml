@@ -1,0 +1,148 @@
+﻿@model List<TTH.Areas.Super.Models.TeamAttendance.EmployeeLeaveVM>
+
+
+
+<style>
+
+
+     .highlight {
+       background-color: #ffc000;
+       font-weight: bold;
+     }
+
+    .MainPart {
+        background-color: #fffbe6;
+        font-size: 12px;
+        margin-left: 40px;
+        padding: 20px;
+        overflow-x: hidden;
+    }
+
+
+
+     h2 {
+       font-size: 20px;
+       margin-left:45px;
+     }
+     @{
+          var leaveList = ViewBag.OperationleaveCount as List<TTH.Areas.Super.Models.TeamAttendance.LeaveCountViewModel>;
+
+     }
+
+</style>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-list"></i>
+                            All Employee Leaves
+                        </h3>
+                    </div>
+    <div class="MainPart">
+        <div class="row mt-4">
+           
+
+            <div class="col-md-12">
+
+
+                <div class="row mb-3">
+    <div class="col-md-6">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search by ID, Name, Leave, Type of Leave" />
+    </div>
+     <div class="col-md-3 mb-2">
+                <input type="date" id="searchStartDate" class="form-control" />
+            </div>
+    <div class="col-md-2">
+        <button class="btn btn-danger" onclick="filterLeaveTable()">Search</button>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-secondary" onclick="resetLeaveSearch()">Reset</button>
+    </div>
+</div>
+
+                 <table class="table table-bordered">
+                <thead class="table-warning">
+                <tr>
+                    <th>EMPLOYEE ID</th>
+                <th>EMPLOYEE NAME</th>
+                <th>START DATE</th>
+                <th>END DATE</th>
+                <th>Leaves</th>
+                <th>Leave Type</th>
+                <th>HRApproval</th>
+                <th>Note</th>
+                <th>Document</th>
+                <th>Action</th>
+                               
+                </tr>
+                </thead>
+                <tbody id="leaveTableBody">
+                            @foreach (var leave in Model)
+                            {
+                                <tr class="leave-row">
+                                    <td><span>@leave.Leave.EmployeeId</span></td>
+                                    <td><span>@leave.Leave.FirstName @leave.Leave.LastName</span></td>
+                                    <td>
+    <span class="view-mode">@leave.Leave.StartDate?.ToString("dd-MM-yyyy")</span>
+  
+</td>
+<td>
+    <span class="view-mode">@leave.Leave.EndDate?.ToString("dd-MM-yyyy")</span>
+  
+</td>
+
+     <td>
+    <span>@leave.Leave.Leave</span>
+    
+</td>
+
+
+  <td><span class="view-mode">@leave.Leave.LeaveType</span>
+</td>
+<td><span class="view-mode">@leave.Leave.HRApproval</span>
+   </td>
+<td>@leave.Leave.Note</td>
+<td> @if (leave.Document != null)
+                                                    {
+                                                        <a href="@Url.Content(leave.Document.FilePath)"
+                                                               target="_blank"
+                                                               class="text-primary"
+                                                               style="font-weight:600;">
+                                                                View Attachment
+                                                            </a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>No Document</span>
+                                                    }</td>
+                                    
+                                    <td>
+
+                                            <button type="button" class="btn btn-primary btn-sm edit-btn fas fa-edit" data-id="@leave.Leave.Id"></button>
+                                            <button type="button" class="btn btn-success btn-sm update-btn fa fa-refresh" data-id="@leave.Leave.Id " style="display: none;"></button>
+                                            <button type="button" class="btn btn-danger btn-sm delete-btn fas fa-trash-alt " data-id="@leave.Leave.Id"></button>
+                                            <button type="button" class="btn btn-secondary btn-sm cancel-btn fa fa-times text-danger" data-id="@leave.Leave.Id" style="display: none;"></button>
+                                        </td>
+                                </tr>
+                            }
+                </tbody>
+                </table> 
+
+
+<div class="text-center mt-3">
+    <button id="loadMoreBtn" class="btn btn-outline-primary">Load More</button>
+</div>
+            </div>
+        </div>
+    </div>
+    </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
