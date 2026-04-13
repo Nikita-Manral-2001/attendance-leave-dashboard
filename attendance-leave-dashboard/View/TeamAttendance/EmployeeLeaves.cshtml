@@ -1,0 +1,394 @@
+﻿@model TTH.Areas.Super.Models.TeamAttendance.EmployeeViewModel
+
+
+
+<style>
+
+
+     .highlight {
+       background-color: #ffc000;
+       font-weight: bold;
+     }
+
+    .MainPart {
+        background-color: #fffbe6;
+        font-size: 12px;
+        margin-left: 40px;
+        padding: 20px;
+        overflow-x: hidden;
+    }
+
+
+
+     h2 {
+       font-size: 20px;
+       margin-left:45px;
+     }
+    @{
+        var leaveList = ViewBag.OperationleaveCount as List<TTH.Areas.Super.Models.TeamAttendance.LeaveCountViewModel>;
+
+    }
+
+</style>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-list"></i>
+                            Add Employee Leave
+                        </h3>
+                    </div>
+                    <div class="MainPart">
+                        <div class="row mt-4">
+                            <div class="col-md-4">
+                                <form class="p-4 shadow rounded bg-white" method="post" asp-controller="TeamAttendance" asp-action="AddEmployeeLeaves">
+                                    <div class="mb-3">
+                                        <label for="employeeSelect" class="form-label fw-semibold">Select Employee</label>
+                                        <select id="employeeSelect" name="employeeData" class="form-select form-select-sm border-3" aria-label="Select Employee" required>
+                                            <option value="" selected>Select Emp---</option>
+                                            @foreach (var emp in Model.Employees)
+                                            {
+                                                <option value="@emp.EmployeeId" name="employeeData">@emp.FirstName @emp.LastName (@emp.EmployeeId)</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label for="startDate" class="form-label fw-semibold">Start Date</label>
+                                            <input type="date" id="startDate" name="startDate" class="form-control form-control-sm border-3" required />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="endDate" class="form-label fw-semibold">End Date</label>
+                                            <input type="date" id="endDate" name="endDate" class="form-control form-control-sm border-3" required />
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="leave" class="form-label fw-semibold">Choose Leave</label>
+                                        @if (leaveList != null && leaveList.Any())
+                                        {
+                                            <select id="leaveTypeDropdown" name="leave" class="form-control" required>
+                                                <option value="">Choose Leave---</option>
+                                                @foreach (var leave in leaveList)
+                                                {
+                                                    <option value="@leave.LeaveType">@leave.LeaveType</option>
+                                                }
+                                                <option value="WHF">WHF</option>
+                                            </select>
+                                        }
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="leaveType" class="form-label fw-semibold">Leave Type</label>
+
+
+                                        <select id="leaveTypeDropdown" name="leaveType" class="form-control" required>
+
+                                            <option value="">Choose Leave Type----</option>
+                                            <option value="Paid">Paid</option>
+                                            <option value="Unpaid">Unpaid</option>
+                                            <option value="other">Other</option>
+
+                                        </select>
+
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="note" class="form-label fw-semibold">Note</label>
+                                        <input type="text" id="note" name="note" class="form-control form-control-sm border-3" placeholder="Add a note (optional)" />
+                                    </div>
+
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-danger btn-sm fw-semibold">Submit</button>
+                                    </div>
+                                </form>
+
+
+                            </div>
+
+                            <div class="col-md-8">
+
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <input type="text" id="searchInput" class="form-control" placeholder="Search by ID, Name, Leave, Type of Leave" />
+                                    </div>
+                                    <div class="col-md-3 mb-2">
+                                        <input type="date" id="searchStartDate" class="form-control" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-danger" onclick="filterLeaveTable()">Search</button>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-secondary" onclick="resetLeaveSearch()">Reset</button>
+                                    </div>
+                                </div>
+                                @if (Model.Leaves != null)
+                                {
+                                    <table class="table table-bordered">
+                                        <thead class="table-warning">
+                                            <tr>
+                                                <th>EMPLOYEE ID</th>
+                                                <th>EMPLOYEE NAME</th>
+                                                <th>START DATE</th>
+                                                <th>END DATE</th>
+                                                <th>Leaves</th>
+                                                <th>TYPE OF LEAVES</th>
+
+                                            </tr>
+                                        </thead>
+                                        <tbody id="leaveTableBody">
+                                            @foreach (var leave in Model.Leaves)
+                                            {
+                                                <tr class="leave-row">
+                                                    <td><span class="view-mode">@leave.EmployeeId</span><input type="number" class="form-control edit-mode employee-id" value="@leave.EmployeeId" style="display: none;"></td>
+                                                    <td><span class="view-mode">@leave.FirstName @leave.LastName</span><input type="text" class="form-control edit-mode full-name" value="@leave.FirstName @leave.LastName" style="display: none;"></td>
+                                                    <td>
+                                                        <span class="view-mode">@leave.StartDate?.ToString("dd-MM-yyyy")</span>
+                                                        <input type="date"
+                                                               class="form-control edit-mode start-date"
+                                                               value="@(leave.StartDate.HasValue ? leave.StartDate.Value.ToString("yyyy-MM-dd") : "")"
+                                                               style="display: none;" />
+                                                    </td>
+                                                    <td>
+                                                        <span class="view-mode">@leave.EndDate?.ToString("dd-MM-yyyy")</span>
+                                                        <input type="date"
+                                                               class="form-control edit-mode end-date"
+                                                               value="@(leave.EndDate.HasValue ? leave.EndDate.Value.ToString("yyyy-MM-dd") : "")"
+                                                               style="display: none;" />
+                                                    </td>
+                                                    <td><span class="view-mode">@leave.Leave</span><input type="text" class="form-control edit-mode leave" value="@leave.Leave" style="display: none;"></td>
+                                                    <td>
+                                                        <span class="view-mode">@leave.LeaveType</span>@{
+                                                            var types = new List<string> { "Paid", "Unpaid", "Other" };
+                                                        }
+                                                        <select class="form-control edit-mode leave-type" style="display: none;" required>
+                                                            <option value="">Choose Leave Type----</option>
+                                                            @foreach (var type in types)
+                                                            {
+                                                                <option value="@type" selected="@(leave.LeaveType == type ? "selected" : null)">@type</option>
+                                                            }
+                                                        </select>
+                                                    </td>
+
+
+
+
+
+                                                   
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+
+                                <div class="text-center mt-3">
+                                    <button id="loadMoreBtn" class="btn btn-outline-primary">Load More</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+    const token = tokenInput ? tokenInput.value : "";
+    const tableBody = document.getElementById("leaveTableBody");
+    const loadMoreBtn = document.getElementById("loadMoreBtn");
+
+    let allRows = Array.from(document.querySelectorAll(".leave-row"));
+    let filteredRows = [...allRows]; // dynamic after search
+    let visibleCount = 10;
+
+    // Reusable function → show rows from filteredRows[]
+    function updateVisibleRows() {
+        filteredRows.forEach((row, i) => {
+            row.style.display = i < visibleCount ? "" : "none";
+        });
+
+        // Hide other rows completely
+        allRows.forEach(row => {
+            if (!filteredRows.includes(row)) row.style.display = "none";
+        });
+
+        loadMoreBtn.style.display =
+            visibleCount >= filteredRows.length ? "none" : "inline-block";
+    }
+
+    updateVisibleRows();
+
+    // --------------------------
+    // DELETE, EDIT, UPDATE, etc.
+    // --------------------------
+    document.addEventListener("click", function (e) {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+        // --- DELETE ---
+        if (btn.classList.contains("delete-btn")) {
+            const id = btn.dataset.id;
+            if (confirm("Are you sure you want to delete this leave?")) {
+                fetch(`/super/TeamAttendance/DeleteEmployeeLeave/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": token
+                    }
+                })
+                .then(r => {
+                    if (r.ok) location.reload();
+                    else alert("Failed to delete the leave.");
+                })
+                .catch(err => console.error("Error:", err));
+            }
+        }
+
+        // --- EDIT ---
+        if (btn.classList.contains("edit-btn")) {
+            const row = btn.closest("tr");
+            row.querySelectorAll(".view-mode").forEach(el => el.style.display = "none");
+            row.querySelectorAll(".edit-mode").forEach(el => el.style.display = "block");
+            row.querySelector(".edit-btn").style.display = "none";
+            row.querySelector(".update-btn").style.display = "inline-block";
+            row.querySelector(".delete-btn").style.display = "none";
+            row.querySelector(".cancel-btn").style.display = "inline-block";
+        }
+
+        // --- CANCEL ---
+        if (btn.classList.contains("cancel-btn")) {
+            const row = btn.closest("tr");
+            row.querySelectorAll(".view-mode").forEach(el => el.style.display = "block");
+            row.querySelectorAll(".edit-mode").forEach(el => el.style.display = "none");
+            row.querySelector(".edit-btn").style.display = "inline-block";
+            row.querySelector(".update-btn").style.display = "none";
+            row.querySelector(".delete-btn").style.display = "inline-block";
+            row.querySelector(".cancel-btn").style.display = "none";
+        }
+
+        // --- UPDATE ---
+        if (btn.classList.contains("update-btn")) {
+    const row = btn.closest("tr");
+    const id = btn.dataset.id.trim();
+
+    const updatedData = {
+        Id: parseInt(id),
+        StartDate: row.querySelector(".start-date").value,
+        EndDate: row.querySelector(".end-date").value,
+        LeaveType: row.querySelector(".leave-type").value,
+        HRApproval: row.querySelector(".approval-type").value,
+    };
+
+    console.log(JSON.stringify(updatedData)); 
+
+    fetch("/super/TeamAttendance/NewUpdateEmployeeLeave", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "RequestVerificationToken": token
+        },
+        body: JSON.stringify(updatedData)
+    })
+    .then(response => {
+        if (response.ok) {
+            alert("Leave updated successfully.");
+            location.reload();
+        } else {
+            alert("Failed to update leave.");
+        }
+    })
+    .catch(err => console.error("Error:", err));
+}
+
+        // LOAD MORE
+        if (btn.id === "loadMoreBtn") {
+            visibleCount += 10;
+            updateVisibleRows();
+        }
+
+        // SEARCH BUTTON CLICK
+        if (btn.getAttribute("onclick") === "filterLeaveTable()") {
+            filterLeaveTable();
+        }
+
+        // RESET BUTTON CLICK
+        if (btn.getAttribute("onclick") === "resetLeaveSearch()") {
+            resetLeaveSearch();
+        }
+    });
+
+    // ==========================
+    //  SEARCH FUNCTIONALITY
+    // ==========================
+    window.filterLeaveTable = function () {
+        const input = document.getElementById("searchInput").value.toLowerCase().trim();
+        const startDateInput = document.getElementById("searchStartDate").value.trim();
+
+        filteredRows = allRows.filter(row => {
+            const employeeId = row.cells[0].innerText.toLowerCase();
+            const name = row.cells[1].innerText.toLowerCase();
+            const startDateText = row.cells[2].innerText.trim();
+            const leave = row.cells[4].innerText.toLowerCase();
+            const leaveType = row.cells[5].innerText.toLowerCase();
+            const hrApproval = row.cells[6].innerText.toLowerCase(); 
+
+            const [day, month, year] = startDateText.split("-");
+            const formattedStartDate = `${year}-${month}-${day}`;
+
+            const matchesText =
+                employeeId.includes(input) ||
+                name.includes(input) ||
+                leave.includes(input) ||
+                leaveType.includes(input) ||
+                hrApproval.includes(input); // ⭐ NEW
+
+            const matchesDate = !startDateInput || formattedStartDate === startDateInput;
+
+            return (input === "" || matchesText) && matchesDate;
+        });
+
+        visibleCount = 10; // reset for new search  
+        updateVisibleRows();
+
+        const existingNoRow = document.getElementById("noResultsRow");
+        if (filteredRows.length === 0) {
+            if (!existingNoRow) {
+                const tr = document.createElement("tr");
+                tr.id = "noResultsRow";
+                const td = document.createElement("td");
+                td.colSpan = 10;
+                td.className = "text-center text-danger fw-bold";
+                td.textContent = "No matching records found.";
+                tr.appendChild(td);
+                tableBody.appendChild(tr);
+            }
+        } else if (existingNoRow) {
+            existingNoRow.remove();
+        }
+    };
+
+    // ==========================
+    //  RESET SEARCH
+    // ==========================
+    window.resetLeaveSearch = function () {
+        document.getElementById("searchInput").value = "";
+        document.getElementById("searchStartDate").value = "";
+
+        filteredRows = [...allRows]; // reset to all data
+        visibleCount = 10;
+
+        const existingNoRow = document.getElementById("noResultsRow");
+        if (existingNoRow) existingNoRow.remove();
+
+        updateVisibleRows();
+    };
+});
+</script>

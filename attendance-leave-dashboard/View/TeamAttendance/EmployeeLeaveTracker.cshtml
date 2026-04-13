@@ -1,0 +1,331 @@
+﻿@model TTH.Areas.Super.Models.TeamAttendance.TeamHolidaysViewModel
+
+<style>
+ .MainPart {
+    background-color: #fffbe6;
+    font-size: 12px; 
+  margin-left:40px;
+    padding: 20px;
+    overflow-x:hidden;
+  }
+
+    .Leave-btn{
+        height:22px;
+        width:22px;
+        border-radius:5px;    }
+  .highlight {
+    background-color: #ffc000;
+    font-weight: bold;
+  }
+
+  .bordered {
+    border: 1px solid #000;
+  }
+
+  .table-bordered td, .table-bordered th {
+    vertical-align: middle;
+    text-align: center;
+    height: 40px;
+    padding: 4px;
+    
+  }
+
+  .instructions td {
+    background-color: #ffe699;
+  }
+
+  .DetailsSection {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .left-side {
+    width: 40%;
+  }
+
+  .right-side {
+    width: 30%;
+  }
+
+    .middleOne{
+        width: 30%;
+    }
+
+  table input.form-control {
+ 
+    padding: 4px;
+  }
+
+  h2 {
+    font-size: 20px;
+    margin-left:45px;
+  }
+  p{
+      margin-top:-30px;
+  }
+
+    .EnterHoliday{
+        margin-bottom:80px;
+    }
+
+    .holidayshighlight{
+        font-weight: bold;
+    }
+
+</style>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-list"></i>
+                           Employee Leave Tracker
+                        </h3>
+                    </div>
+    <div class="MainPart">
+  
+  <div class="row mt-4">
+   
+    <div class="left-side">
+      <table class="table table-bordered instructions">
+        <tbody>
+          <tr><td>Enter Leave Types, Holidays and Weekends in Settings sheet.</td></tr>
+          <tr><td>Enter Employees list in Employees sheet.</td></tr>
+          <tr><td>Enter Leave/Vacation data in Leave sheet.</td></tr>
+          <tr><td>View Team calendar in Team Dashboard sheet for chosen month.</td></tr>
+          <tr><td>View/Print annual Report from Employee Report sheet for chosen employee.</td></tr>
+          <tr><td>Password to unprotect sheets: <b>indzara</b></td></tr>
+        </tbody>
+      </table>
+      <br />
+      <br />
+                                <form method="post" asp-controller="TeamAttendance" asp-action="OperationAndOfficeLeaves" class="p-4 shadow rounded bg-white">
+                                    <div style="background-color: #fff3cd; border: 2px solid #ffe699;" class="p-3 mb-4">
+                                        <h5 class="fw-bold mb-0">Set Operation and Office Leaves</h5>
+                                    </div>
+
+
+                                    <div class="row g-3 align-items-center mb-3">
+                                        <div class="col-md-6">
+                                            <label for="OperationLeaves" class="form-label fw-semibold">Operation Leaves</label>
+                                            <input type="number" class="form-control border-2" id="OperationLeaves" name="OperationValue" placeholder="Enter Operation Leaves" />
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label for="OfficeLeaves" class="form-label fw-semibold">Office Leaves</label>
+                                            <input type="number" class="form-control border-2" id="OfficeLeaves" name="OfficeValue" placeholder="Enter Office Leaves" />
+                                        </div>
+                                    </div>
+                                    @if (TempData["Success"] != null)
+                                    {
+                                        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                                            <i class="fa fa-check-circle me-2"></i> @TempData["Success"]
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    }
+                                    <div class="d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-danger fw-semibold px-4">
+                                            Submit
+                                        </button>
+                                    </div>
+
+                                </form>
+    </div>
+           @*  <div class="middleOne">
+                <form method="post" asp-controller="TeamAttendance" asp-action="AddLeaveType">
+                    <!-- Leave Type -->
+
+                    <label for="leaveType">Leave Type:</label>
+                    <input type="text" id="leaveType" name="leaveType" required />
+                   
+
+                    <!-- Day Value -->
+                    <label for="dayValue">Day Value:</label>
+                    <input type="number" id="dayValue" name="dayValue" step="0.1" min="0" max="10" required />
+
+                    <!-- Submit Button -->
+                    <button type="submit">ADD</button>
+                </form>
+            </div> *@
+
+    <div class="right-side">
+                                <p><strong>Enter leaves here</strong> To count as half a day, enter <strong>0.5</strong><br /> Dont add <strong>Paid,Unpaid,WHF</strong>(Work From Home)</p>
+     
+      <table class="table table-bordered">
+        <thead class="table-warning">
+          <tr><th>LEAVE TYPE</th><th>DAY VALUE</th></tr>
+        </thead>
+        <tbody>
+
+
+                        @if (Model.LeaveTypes?.Any() == true)
+                        {
+                            @foreach (var leaves in Model.LeaveTypes)
+                            {
+                                <tr>
+                                    <td>@leaves.LeaveTypeName</td>
+                                    <td>@leaves.DayValue <div style="width: 20px; height: 20px; background-color: @leaves.colorPicker; display: inline-block; border: 1px solid #000; margin-left: 10px;"></div></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="2">No upcoming holidays found.</td>
+                            </tr>
+                        }
+
+
+      
+        </tbody>
+      </table>
+
+
+
+               
+                    <form method="post" asp-controller="TeamAttendance" asp-action="AddLeaveType">
+                        <!-- Leave Type -->
+                    <table class="table table-bordered">
+                            <tbody>
+                            <tr>
+                                <td> <input type="text" id="leaveType" name="leaveType" required style="border: none;" placeholder="Enter Leave Type"/></td>
+                                <td>  <input type="number" id="dayValue" name="dayValue" step="0.1" min="0" max="10" style="border: none;" placeholder="Enter Day" required /></td>
+                                <td>
+                                    <input type="color" id="colorPicker" name="colorPicker" style="border: none;" title="Choose a color" />
+                                </td>
+                                <td> <button type="submit" class="Leave-btn btn-danger"><b>+</b></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                     
+                       
+                    </form>
+                
+    </div>
+  </div>
+
+
+       
+  <div class="row mt-8">
+
+            <div class="col-md-6 EnterHoliday mt-5">
+   
+      <form method="post" asp-controller="TeamAttendance" asp-action="EmployeeLeaveTracker" >
+                    <h2 class="text-center holidayshighlight">UPDATE HOLIDAYS</h2>
+                        <table class="table table-bordered " id="holidayTable">
+                        <thead class="table-warning">
+                            <tr><th>Enter Holidays</th></tr>
+                        </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="row mt-2">
+                                            <div class="col-md-4">
+                                        <input type="date" name="HolidayDates" class="form-control" />
+                                                
+                                            </div>
+                                            <div class="col-md-6">
+                                        <input type="text" name="HolidayNames" class="form-control mb-2" placeholder="Holiday 1" />
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-start gap-1">
+                                        <button type="button" class="btn btn-danger btn-sm removeRow">−</button>
+                                                <button type="button" class="btn btn-danger btn-sm addRow">+</button>
+                                      
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    <button type="submit" class="btn btn-danger">Save</button>
+
+                </form>
+    </div>
+
+            <div class="col-md-6 mt-5">
+                <h2 class="text-center holidayshighlight">UPCOMING HOLIDAYS</h2>
+                <table class="table table-bordered">
+                    <thead class="table-warning">
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                      
+                            @if (Model.UpcomingHolidays?.Any() == true)
+                            {
+                                @foreach (var holiday in Model.UpcomingHolidays)
+                                {
+                                    <tr>
+                                        <td>@holiday.Date.ToString("dd/MM/yyyy")</td>
+                                        <td>@holiday.Holidays</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="2">No upcoming holidays found.</td>
+                                </tr>
+                            }
+                        
+                    </tbody>
+                </table>
+            </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div></div>
+</section>
+<script>
+    let holidayCount = 1;
+
+    document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("addRow")) {
+            holidayCount++;
+            const table = document.getElementById("holidayTable").getElementsByTagName("tbody")[0];
+            const newRow = document.createElement("tr");
+            newRow.innerHTML = `
+                <td>
+                    <div class="row mt-2">
+                        <div class="col-md-4">
+                               <input type="date" name="HolidayDates" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                                 <input type="text" name="HolidayNames" class="form-control mb-2" placeholder="Holiday ${holidayCount}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-start gap-1">
+                            <button type="button" class="btn btn-danger btn-sm removeRow">−</button>
+                                <button type="button" class="btn btn-danger btn-sm addRow">+</button>
+                                
+                        </div>
+                    </div>
+                </td>`;
+            table.appendChild(newRow);
+        }
+
+        if (e.target.classList.contains("removeRow")) {
+            const row = e.target.closest("tr");
+            const table = document.getElementById("holidayTable").getElementsByTagName("tbody")[0];
+            if (table.rows.length > 1) {
+                table.removeChild(row);
+                holidayCount--;
+            } 
+        }
+    });
+</script>
+
+<script></script>

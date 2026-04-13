@@ -1,0 +1,73 @@
+﻿@model List<TTH.Areas.Super.Models.TeamAttendance.EmployeeViewModel>
+
+
+
+<style>
+   
+
+     .highlight {
+       background-color: #ffc000;
+       font-weight: bold;
+     }
+
+    .MainPart {
+        background-color: #fffbe6;
+        font-size: 12px; 
+        margin-left: 40px;
+        padding: 20px;
+        overflow-x: hidden;
+    }
+
+     
+
+     h2 {
+       font-size: 20px;
+       margin-left:45px;
+     }
+  
+
+</style>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-list"></i>
+                            EMPLOYEE DATA
+                        </h3>
+                    </div>
+    <div class="MainPart">
+        <div class="row mt-4">
+            <div class="col-md-6">
+        
+<table class="table table-bordered">
+                    <thead class="table-warning">
+        <tr>
+            <th>EMPLOYEE NAME</th>
+            <th>JOIN DATE</th>
+          
+            <th>RESIGNATION DATE</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var emp in Model)
+        {
+            <tr>
+                <td>@emp.FirstName @emp.LastName (@emp.EmployeeId)</td>
+                                                <td>@emp.JoinDate?.ToString("dd-MM-yyyy")</td>
+                                                <td>@emp.ResignDate?.ToString("dd-MM-yyyy")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>
+</div>
+</div>  
+</div>
+</div>
+</div>
+</div>
+</section>

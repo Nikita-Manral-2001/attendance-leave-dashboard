@@ -1,0 +1,565 @@
+﻿@model List<TTH.Areas.Super.Models.TeamAttendance.EmployeeViewModel>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .month-header {
+        width: 150px;
+    }
+
+
+    .attendance-header {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        text-align: center;
+    }
+
+    .table thead th {
+        vertical-align: middle;
+        text-align: center;
+        font-size: 12px;
+    }
+
+    .table td, .table th {
+        font-size: 11px;
+        vertical-align: middle;
+        text-align: center;
+        padding: 6px;
+    }
+
+    .table tbody tr:nth-child(odd) {
+        background-color: #f9f9f9;
+    }
+
+
+
+    .form-control-sm {
+        font-size: 11px;
+        padding: 2px 6px;
+    }
+
+    .table-bordered th,
+    .table-bordered td {
+        border: 1px solid #dee2e6;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #fff7cc;
+    }
+
+    .label-box {
+        width: 80px;
+        height: 30px;
+        color: white;
+        text-align: center;
+        line-height: 30px;
+        margin-right: 5px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 4px;
+    }
+
+    .lable-leaves {
+        width: 80px;
+        height: 50px;
+        text-align: center;
+        line-height: 30px;
+        margin-right: 5px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 4px;
+        align-content: center;
+        color:whitesmoke;
+    }
+
+    .sick {
+        background-color: #c06c84;
+        color: white;
+    }
+
+    .wfh {
+        background-color: #d203fc;
+        color: white;
+    }
+
+    .not-applicable {
+        background-color: #eeeeee;
+        color: black;
+    }
+
+    .unpaid {
+        background-color: #f6d55c;
+        color: black;
+    }
+
+    .weekend {
+        background-color: #bdbdbd;
+        color: black;
+    }
+
+    .half-day {
+        background-color: #0077b6;
+        color: white;
+    }
+
+    .holiday {
+        background-color: #1434A4;
+        color: white;
+    }
+
+    .paid {
+        background-color: #00afb6;
+         color:white;
+    }
+
+    .summary-title {
+        font-weight: bold;
+        font-size: 18px;
+        padding-top: 20px;
+    }
+    .totalLeaves{
+        background-color: #8A0000;
+    }
+
+    .roster-day {
+        background-color: #808000;
+    }
+
+    .paid-day {
+        background-color: #fcf403;
+        color: black;
+    }
+
+    .unpaid-day {
+        background-color:red;
+    }
+    .table-container {
+        overflow-x: auto;
+        overflow-y: auto;
+        max-height: 600px; /* adjust as needed */
+    }
+
+    /* Sticky first column (Employee Name) */
+    table.table th:first-child,
+    table.table td:first-child {
+        position: sticky;
+        left: 0;
+        background: #fff;
+        z-index: 50; /* must be high to stay on top */
+        box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+    }
+
+    /* First column of THEAD gets highest z-index */
+    table.table thead th:first-child {
+         z-index:  100;
+    }
+</style>
+
+
+@{
+    var leaveList = ViewBag.OperationleaveCount as List<TTH.Areas.Super.Models.TeamAttendance.LeaveCountViewModel>;
+    var rotsterLeave = ViewBag.employeeRosterLeaves as List<TTH.Areas.Super.Data.TeamAttendance.EmployeeRosterLeave>;
+    var LeaveDays = ViewBag.LeavesDays;
+    var opHolidayMap = ViewBag.OperationEmployeeHolidays as Dictionary<string, List<DateTime>> ?? new Dictionary<string, List<DateTime>>();
+    var leaveDatesDict = ViewBag.OperationEmployeeLeaves as Dictionary<string, List<(DateTime Date, string Leave, string LeaveType)>>
+                     ?? new Dictionary<string, List<(DateTime Date, string Leave, string LeaveType)>>();
+    var weekendDatesDict = ViewBag.EmployeeWeekendDates as Dictionary<string, List<DateTime>> ?? new Dictionary<string, List<DateTime>>();
+}
+@{
+    Dictionary<(string Leave, string LeaveType), double> leaveCounts = new Dictionary<(string, string), double>();
+
+    var Year = ViewBag.year;
+}
+<section class="DetailsSection">
+
+
+
+
+    <div class="row mt-3 mb-3">
+     
+
+        <div class="col-md-9 mx-auto">
+            <div class="row justify-content-center mb-2 flex-wrap gap-2 align-items-center">
+                <div class="label-box weekend">Weekends</div>
+                <div class="label-box holiday">Holidays</div>
+            
+                <div class="label-box roster-day">RosterDay</div>
+                <div class="label-box paid-day">Paid</div>
+                <div class="label-box unpaid-day">Unpaid</div>
+                @if (leaveList != null && leaveList.Any())
+                {
+                    @foreach (var leave in leaveList)
+                    {
+                        <div class="label-box" style="background-color: @leave.color;">@leave.LeaveType</div>
+
+                    }
+                    <div class="label-box wfh">WHF</div>
+                }
+            </div>
+          
+            <div class="row justify-content-center flex-wrap gap-2">
+
+
+                <form method="post" asp-action="GetEmployeeLeaveData" asp-controller="TeamAttendance" id="empForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <select name="employeeId" class="form-control form-control-sm border-3" onchange="submitForm()">
+                                <option value="">Select Emp---</option>
+                                @foreach (var emoployee in Model)
+                                {
+                                    <option value="@emoployee.EmployeeId">@emoployee.FirstName @emoployee.LastName (@emoployee.EmployeeId)</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <select name="year" id="yearPicker" class="form-control form-control-sm border-3" onchange="submitForm">
+                                <option value="@Year">Select Year---</option>
+                                @{
+                                    int currentYear = DateTime.Now.Year;
+                                    for (int y = currentYear; y >= 2000; y--)
+                                    {
+                                        <option value="@y">@y</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </form>
+                
+
+            </div>
+        </div>
+
+
+        @* <div class="col-md-2 ">
+
+        </div> *@
+        @* <th>
+        <input type="month" id="monthPicker" class="form-control form-control-sm" value="2025-05" />
+        </th> *@
+    </div>
+    <div class="row">
+        <div class="col-md-12 table-container">
+            <table class="table table-bordered table-hover text-center">
+                <thead>
+                    <tr>
+                        @{
+
+                            Dictionary<(string Leave, string LeaveType), double> AllleaveCounts = new Dictionary<(string, string), double>();
+                            var emp = Model.FirstOrDefault(); // Only one employee selected
+                            string[] months = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.MonthNames;
+                            string employeeId = emp.EmployeeId.ToString();
+
+                            var empAllLeaveDetails = leaveDatesDict.ContainsKey(employeeId)
+                            ? leaveDatesDict[employeeId]
+                            : new List<(DateTime Date, string Leave, string LeaveType)>();
+
+                            @for (int m = 1; m <= 12; m++)
+                            {
+                                int actualDaysInMonth = DateTime.DaysInMonth(Year, m);
+                               
+
+                                // Calculate leaveCounts ONLY for the current month
+                                for (int i = 1; i <= actualDaysInMonth; i++)
+                                {
+                                    var date = new DateTime(Year, m, i);
+                                    var leaveRecord = empAllLeaveDetails.FirstOrDefault(d => d.Item1.Date == date.Date);
+
+                                    if (leaveRecord != default)
+                                    {
+                                        var leaveName = leaveRecord.Leave?.ToLower() ?? "";
+                                        var leaveType = leaveRecord.LeaveType?.ToLower() ?? "";
+
+                                        var matchingLeave = leaveList?.FirstOrDefault(l => l.LeaveType?.ToLower() == leaveName);
+
+                                        if (matchingLeave != null && !string.IsNullOrEmpty(matchingLeave.LeaveType))
+                                        {
+                                            var key = (leaveType, matchingLeave.LeaveType.ToLower());
+                                            AllleaveCounts.TryGetValue(key, out double currentCount);
+                                            AllleaveCounts[key] = currentCount + matchingLeave.Count;
+                                        }
+                                        else if (leaveName?.ToLower() == "whf")
+                                        {
+
+                                            var whfKey = (leaveType, leaveName.ToLower()); // Fallback key if leaveType is null
+                                            AllleaveCounts.TryGetValue(whfKey, out double currentCount);
+                                            AllleaveCounts[whfKey] = currentCount + 1;
+                                        }
+                                    }
+                                }
+                            }
+
+
+                            double totalPaid = AllleaveCounts
+                            .Where(x => x.Key.Item1.ToLower() == "paid")
+                            .Sum(x => x.Value);
+
+                            double totalUnpaid = AllleaveCounts
+                            .Where(x => x.Key.Item1.ToLower() == "unpaid")
+                            .Sum(x => x.Value);
+
+                            double totalWfh = AllleaveCounts
+                            .Where(x => x.Key.Item1.ToLower() == "other")
+                            .Sum(x => x.Value);
+
+                            double totalAllLeaves = totalPaid + totalUnpaid;
+
+                            double EmployeeTotalLeave = Math.Max(0, LeaveDays - totalAllLeaves);
+
+                            int totalDays = 30;
+                            int YeartotalDays = 360;
+
+                            double workDays = YeartotalDays - totalUnpaid;
+                            
+                        }
+
+                        <th rowspan="1"></th>
+                        <th colspan="31" style="font-size: 20px;">@emp.FirstName @emp.LastName (@ViewBag.year)</th>
+
+
+
+
+                        <th><div class="lable-leaves totalLeaves">@totalPaid</div>Paid</th>
+                        <th><div class="lable-leaves totalLeaves">@totalUnpaid</div>Unpaid</th>
+
+                        <th><div class="lable-leaves totalLeaves">@totalAllLeaves</div>Total Leaves</th>
+                        <th><div class="lable-leaves totalLeaves">@totalWfh</div>WHF</th>
+                        <th>
+                            <div class="lable-leaves totalLeaves">
+                                @workDays
+                            </div>Work Days
+                        </th>
+                        <th><div class="lable-leaves totalLeaves">@EmployeeTotalLeave/@LeaveDays</div>Remaining</th>
+                    </tr>
+
+                    <tr class="table-warning">
+                    <th>Month</th>
+                        @for (int i = 1; i <= DateTime.DaysInMonth(2025, 5); i++)
+                        {
+                            <th class="table-warning">@i.ToString("00")</th>
+                        }
+
+                       
+                        @if (leaveList != null && leaveList.Any())
+                        {
+                            @foreach (var leave in leaveList)
+                            {
+                                <th colspan="2">@leave.LeaveType</th>
+                                // <div class="label-box" style="background-color: @leave.color;">@leave.LeaveType</div>
+
+                            }
+                        }
+                        <th>Paid</th>
+                        <th>UnPaid</th>
+                        <th>Total</th>
+                        <th>WHF</th>
+                        <th>Work Days</th>
+                        <th>Total in %</th>
+                    </tr>
+
+                    <tr class="table-warning">
+                        <th colspan="1"></th>
+                        <th colspan="31"></th>
+                        @if (leaveList != null && leaveList.Any())
+                        {
+                            @foreach (var leave in leaveList)
+                            {
+
+                                <th>Paid</th>
+                                <th>UnPaid</th>
+
+                            }
+
+                        }
+
+
+
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    
+
+
+
+
+                    @if (emp != null)
+{
+    string empId = emp.EmployeeId.ToString();
+    var empWeekendDates = weekendDatesDict.ContainsKey(empId) ? weekendDatesDict[empId] : new List<DateTime>();
+    var empHolidayDates = opHolidayMap.ContainsKey(empId) ? opHolidayMap[empId] : new List<DateTime>();
+                        var empLeaveDetails = leaveDatesDict.ContainsKey(empId)
+                        ? leaveDatesDict[empId]
+                        : new List<(DateTime Date, string Leave, string LeaveType)>();
+
+
+
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            int actualDaysInMonth = DateTime.DaysInMonth(Year, m);
+                            leaveCounts.Clear(); // <-- Clear counts before calculating for each month
+
+                            // Calculate leaveCounts ONLY for the current month
+                            for (int i = 1; i <= actualDaysInMonth; i++)
+                            {
+                                var date = new DateTime(Year, m, i);
+                                var leaveRecord = empLeaveDetails.FirstOrDefault(d => d.Item1.Date == date.Date);
+
+                                if (leaveRecord != default)
+                                {
+                                    var leaveName = leaveRecord.Leave?.ToLower() ?? "";
+                                    var leaveType = leaveRecord.LeaveType?.ToLower() ?? "";
+
+                                    var matchingLeave = leaveList?.FirstOrDefault(l => l.LeaveType?.ToLower() == leaveName);
+
+                                    if (matchingLeave != null && !string.IsNullOrEmpty(matchingLeave.LeaveType))
+                                    {
+                                        var key = (leaveType, matchingLeave.LeaveType.ToLower());
+                                        leaveCounts.TryGetValue(key, out double currentCount);
+                                        leaveCounts[key] = currentCount + matchingLeave.Count;
+                                    }
+                                    else if (leaveName?.ToLower() == "whf")
+                                    {
+
+                                        var whfKey = (leaveType, leaveName.ToLower()); // Fallback key if leaveType is null
+                                        leaveCounts.TryGetValue(whfKey, out double currentCount);
+                                        leaveCounts[whfKey] = currentCount + 1;
+                                    }
+                                }
+                            }
+
+                            <tr>
+                                <td class="fw-bold">@months[m - 1]</td>
+                                @for (int i = 1; i <= 31; i++)
+                                {
+                                    string backgroundColor = "";
+                                    if (i <= actualDaysInMonth)
+                                    {
+                                        var date = new DateTime(Year, m, i);
+                                        bool isWeekend = empWeekendDates.Contains(date);
+                                        bool isHoliday = empHolidayDates.Contains(date);
+                                        var leaveRecord = empLeaveDetails.FirstOrDefault(d => d.Item1.Date == date.Date);
+                                        bool emprosterDay = rotsterLeave.Any(r => r.EmployeeId == empId && r.RosterDate == date.Date);
+                                        bool emprosterLeave = rotsterLeave.Any(r => r.EmployeeId == empId && r.LeaveDate == date.Date);
+
+
+                                        if (emprosterDay != false)
+                                        {
+                                            backgroundColor = "#f9f9f9";
+                                        }
+
+                                        else if (emprosterLeave != false)
+                                        {
+                                            backgroundColor = "#808000";
+                                        }
+                                        else if (leaveRecord != default)
+                                        {
+                                            var leaveName = leaveRecord.Leave?.ToLower() ?? "";
+                                            var leaveType = leaveRecord.LeaveType?.ToLower() ?? "";
+                                            if (leaveName == "whf")
+                                            {
+                                                backgroundColor = "#d203fc";
+                                            }
+                                            else
+                                            {
+                                                if (leaveType == "paid")
+                                                {
+                                                    var matchingLeave = leaveList?.FirstOrDefault(l => l.LeaveType?.ToLower() == leaveName);
+                                                    string baseColor = matchingLeave?.color ?? "#cccccc";
+                                                    backgroundColor = $"linear-gradient(45deg, {baseColor} 50%, #fcf403 50%)";
+
+                                                }
+                                                // UnPaid → half red + half other color
+                                                else if (leaveType == "unpaid")
+
+                                                {
+                                                    var matchingLeave = leaveList?.FirstOrDefault(l => l.LeaveType?.ToLower() == leaveName);
+                                                    string baseColor = matchingLeave?.color ?? "#cccccc";
+                                                    backgroundColor = $"linear-gradient(45deg, {baseColor} 50%, red 50%)";
+
+
+                                                }
+
+                                            }
+
+
+                                        }
+                                        else if (isWeekend)
+                                        {
+                                            backgroundColor = "#bdbdbd";
+                                        }
+                                        else if (isHoliday)
+                                        {
+                                            backgroundColor = "#1434A4";
+                                        }
+                                    }
+
+                                    <td style="background:@backgroundColor"></td>
+                                }
+
+
+
+
+                                @if (leaveList != null && leaveList.Any())
+                                {
+                                    foreach (var leave in leaveList)
+                                    {
+                                        var leaveType = leave.LeaveType?.ToLower() ?? "";
+
+                                        double paidCount = leaveCounts.TryGetValue(("paid", leaveType), out var pCount) ? pCount : 0;
+                                        double unpaidCount = leaveCounts.TryGetValue(("unpaid", leaveType), out var uCount) ? uCount : 0;
+
+                                        <td>@paidCount</td>
+                                        <td>@unpaidCount</td>
+                                    }
+                                }
+                                @{
+                                   
+                                    double unpaid = leaveCounts.Where(kvp => kvp.Key.Item1 == "unpaid").Sum(kvp => kvp.Value);
+                                    double workPercentage = ((totalDays - unpaid) / totalDays) * 100;
+                                }
+
+                                <td>@(leaveCounts.Where(kvp => kvp.Key.Item1 == "paid").Sum(kvp => kvp.Value))</td>
+                                <td>@(leaveCounts.Where(kvp => kvp.Key.Item1 == "unpaid").Sum(kvp => kvp.Value))</td>
+                                <td>@leaveCounts.Where(kvp => kvp.Key.Item1 != "other").Sum(kvp => kvp.Value)</td>
+                                <td>@(leaveCounts.Where(kvp => kvp.Key.Item2 == "whf").Sum(kvp => kvp.Value))</td>
+                                <td>@(30 - leaveCounts.Where(kvp => kvp.Key.Item1 == "unpaid").Sum(kvp => kvp.Value))</td>
+
+                                <td>@workPercentage.ToString("0.0")%</td>
+                            </tr>
+                        }
+
+}
+                </tbody>
+            </table>
+        </div>
+
+
+    </div>
+</section>
+<script>
+    const yearSelect = document.getElementById('yearPicker');
+    const currentYear = new Date().getFullYear();
+    const startYear = 2000;
+    const endYear = currentYear + 50;
+
+    for (let year = startYear; year <= endYear; year++) {
+        const option = document.createElement("option");
+        option.value = year;
+        option.textContent = year;
+        if (year === currentYear) {
+            option.selected = true;
+        }       
+        yearSelect.appendChild(option);
+    }
+</script>
+<script>
+    function submitForm() {
+        document.getElementById("empForm").submit();
+    }
+</script>

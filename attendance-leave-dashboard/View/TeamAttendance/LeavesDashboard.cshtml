@@ -1,0 +1,445 @@
+﻿@model List<TTH.Areas.Super.Models.TeamAttendance.EmployeeViewModel>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .month-header{
+        width:400px;
+    }
+  
+
+    .attendance-header {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        
+        text-align: center;
+    }
+
+    .table thead th {
+        vertical-align: middle;
+        text-align: center;
+        font-size: 12px;
+    }
+
+    .table td, .table th {
+        font-size: 11px;
+        vertical-align: middle;
+        text-align: center;
+        padding: 6px;
+    }
+
+    .table tbody tr:nth-child(odd) {
+        background-color: #f9f9f9;
+    }
+
+   
+
+    .form-control-sm {
+        font-size: 11px;
+        padding: 2px 6px;
+    }
+
+    .table-bordered th,
+    .table-bordered td {
+        border: 1px solid #dee2e6;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #fff7cc;
+    }
+
+    .label-box {
+        width: 80px;
+        height: 30px;
+        color: white;
+        text-align: center;
+        line-height: 30px;
+        margin-right: 5px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 4px;
+    }
+
+    .sick {
+        background-color: #4b4b4b;
+    }
+
+    .wfh {
+        background-color: #d203fc;
+    }
+
+    .not-applicable {
+        background-color: #eeeeee;
+        color: black;
+    }
+
+    .unpaid {
+        background-color: #f6d55c;
+        color: black;
+    }
+
+    .weekend {
+        background-color: #bdbdbd;
+        color: black;
+    }
+
+    .half-day {
+        background-color: #00afb6;
+    }
+
+    .holiday {
+        background-color: #1434A4;
+    }
+
+    .paid {
+        background-color: #00afb6;
+    }
+
+    .not-employed {
+        background-color: #c06c84;
+    }
+
+  
+
+    .summary-title {
+        font-weight: bold;
+        font-size: 18px;
+        padding-top: 20px;
+    }
+
+    .roster-day {
+        background-color: #808000;
+    }
+        .table-container
+
+    {
+        max-height: 600px; /* adjust based on your page */
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+
+    /* Make the THEAD sticky */
+    .table thead th {
+        position: sticky;
+        top: 0;
+        background: #fff; /* MUST: prevents overlap transparency */
+        z-index: 50; /* keep above table body */
+        box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+    }
+
+    /* Since your thead has 2 rows, second row must start BELOW first row */
+    .table thead tr:nth-child(2) th {
+        top: 42px; /* adjust height of first row */
+        z-index: 40;
+    }
+    /* Sticky first column (Employee Name) */
+    .table tbody td:first-child,
+    .table thead th:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 60;
+        background: #fff; /* Prevent overlap transparency */
+    }
+
+    /* Because your header has sticky top, give higher z-index */
+    .table thead th:first-child {
+        z-index: 70;
+        box-shadow: 2px 0 3px rgba(0,0,0,0.1);
+    }
+
+    /* Optional: add slight shadow for better visual separation */
+    .table tbody td:first-child
+   {
+        box-shadow: 2px 0 3px rgba(0,0,0,0.1);
+    }
+
+</style>
+
+@{
+    
+    var leaveList = ViewBag.OperationleaveCount as List<TTH.Areas.Super.Models.TeamAttendance.LeaveCountViewModel>;
+    var rotsterLeave = ViewBag.employeeRosterLeaves as List<TTH.Areas.Super.Data.TeamAttendance.EmployeeRosterLeave>;
+    var workingDays = ViewBag.WorkingDays as Dictionary<string, int>;
+    int year = ViewBag.CurrentYear;
+    int month = ViewBag.CurrentMonth;
+    int daysInMonth = DateTime.DaysInMonth(year, month);
+    var opHolidayMap = ViewBag.OperationEmployeeHolidays as Dictionary<string, List<DateTime>> ?? new Dictionary<string, List<DateTime>>();
+    var leaveDatesDict = ViewBag.OperationEmployeeLeaves as Dictionary<string, List<(DateTime Date, string Leave, string LeaveType)>>
+                     ?? new Dictionary<string, List<(DateTime Date, string Leave, string LeaveType)>>();
+    var weekendDatesDict = ViewBag.EmployeeWeekendDates as Dictionary<string, List<DateTime>> ?? new Dictionary<string, List<DateTime>>();
+}
+
+
+<section class="DetailsSection">
+    <div class="attendance-header">Employee Attendance – @ViewBag.CurrentstringMonth @ViewBag.CurrentYear</div>
+  
+        <div class="row justify-content-center mb-2 flex-wrap gap-2 align-items-center">
+            <div class="label-box weekend">Weekends</div>
+            <div class="label-box holiday">Holidays</div>
+            <div class="label-box not-employed">Not Emp</div>
+            <div class="label-box roster-day">RosterDay</div>
+            @if (leaveList != null && leaveList.Any())
+            {
+                @foreach (var leave in leaveList)
+                {
+                    <div class="label-box" style="background-color: @leave.color;">@leave.LeaveType</div>
+
+                }
+                <div class="label-box wfh">WHF</div>
+            }
+            <div class="month-header">
+
+                <form id="monthForm" asp-controller="TeamAttendance" asp-action="MonthWiseLeavesDashboard" method="post">
+                    <input type="month" id="monthPicker" name="selectedMonth"
+                           class="form-control form-control-sm border-3"
+                           value="@($"{ViewBag.CurrentYear}-{ViewBag.CurrentstringMonth}")" />
+                </form>
+
+            </div>
+        </div>
+
+
+
+       
+   
+    <div class="row">
+        <div class="col-md-12 table-container">
+           
+
+            <table class="table table-bordered table-hover text-center">
+                <thead>
+                    <tr>
+                        <th rowspan="2" class="table-warning">Employee Name</th>
+
+                        @for (int i = 1; i <= daysInMonth; i++)
+                        {
+                            <th class="table-warning">@i.ToString("00")</th>
+                        }
+
+                        <th rowspan="2"></th>
+                        @if (leaveList != null && leaveList.Any())
+                        {
+                            @foreach (var leave in leaveList)
+                            {
+                                <th colspan="2">@leave.LeaveType</th>
+                                // <div class="label-box" style="background-color: @leave.color;">@leave.LeaveType</div>
+
+                            }
+                        }
+                        <th>Paid</th>
+                        <th>UnPaid</th>
+                        <th>Total</th>
+                        <th>WHF</th>
+                        <th>Work Days</th>
+                        <th>Total in %</th>
+                    </tr>
+
+                    <tr class="table-warning">
+                        @for (int i = 1; i <= daysInMonth; i++)
+                        {
+                            <th>@(new DateTime(year, month, i).ToString("ddd"))</th>
+                        }
+                        @if (leaveList != null && leaveList.Any())
+                        {
+                            @foreach (var leave in leaveList)
+                            {
+                                
+                                    <th>Paid</th>
+                                    <th>UnPaid</th>
+                              
+                            }
+
+                        }
+
+                       
+                        
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var emp in Model)
+                    {
+                        if (emp?.EmployeeId == null)
+                        {
+                            continue; 
+                        }
+
+                        var empId = emp.EmployeeId.ToString();
+
+                        var empWeekendDates = weekendDatesDict.ContainsKey(empId)
+                        ? weekendDatesDict[empId]
+                        : new List<DateTime>();
+
+                        var empHolidayDates = opHolidayMap.ContainsKey(empId)
+                        ? opHolidayMap[empId]
+                        : new List<DateTime>();
+
+                        var empLeaveDetails = leaveDatesDict.ContainsKey(empId)
+                        ? leaveDatesDict[empId]
+                        : new List<(DateTime Date, string Leave, string LeaveType)>();
+
+                        int empworkingdays = workingDays.ContainsKey(empId)
+                        ? workingDays[empId]
+                        : 0;
+
+
+                        Dictionary<(string Leave, string LeaveType), double> leaveCounts = new Dictionary<(string, string), double>();
+
+                        foreach (var leave in empLeaveDetails)
+                        {
+                            DateTime leaveDate = leave.Date;
+
+                            if (leaveDate.Year == year && leaveDate.Month == month)
+                            {
+                                var leaveName = leave.Item2.ToLower() ?? ""; // or however you define "Leave"
+                                var leaveType = leave.Item3?.ToLower() ?? ""; // assuming Item3 is LeaveType
+
+                                var matchingLeave = leaveList?
+                                .FirstOrDefault(l => l.LeaveType?.ToLower() == leaveName);
+
+                                if (matchingLeave != null && !string.IsNullOrEmpty(matchingLeave.LeaveType))
+                                {
+                                    var key = (leaveType, matchingLeave.LeaveType.ToLower());
+
+                                    leaveCounts.TryGetValue(key, out double currentCount);
+                                    leaveCounts[key] = currentCount + matchingLeave.Count;
+                                }
+                                else if (leaveName?.ToLower() == "whf")
+                                {
+
+                                    var whfKey = (leaveType, leaveName.ToLower()); // Fallback key if leaveType is null
+                                    leaveCounts.TryGetValue(whfKey, out double currentCount);
+                                    leaveCounts[whfKey] = currentCount + 1;
+                                }
+                            }
+                           
+
+                        }
+
+
+
+                        
+                        <tr>
+                            <td class="fw-bold">@emp.FirstName @emp.LastName (@emp.EmployeeId)</td>
+
+
+                            @for (int i = 1; i <= daysInMonth; i++)
+                            {
+                                string backgroundColor = "";
+
+                                
+                                    var date = new DateTime(year, month, i);
+                                    bool isWeekend = empWeekendDates.Contains(date);
+                                    bool isHoliday = empHolidayDates.Contains(date);
+                                    var leaveRecord = empLeaveDetails.FirstOrDefault(d => d.Item1.Date == date.Date);
+                                    bool emprosterDay = rotsterLeave.Any(r => r.EmployeeId == empId && r.RosterDate == date.Date);
+                                    bool emprosterLeave = rotsterLeave.Any(r => r.EmployeeId == empId && r.LeaveDate == date.Date);
+
+                                    if (emprosterDay != false)
+                                    {
+                                        backgroundColor = "#f9f9f9";
+                                    }
+
+                                    else if (emprosterLeave != false)
+                                    {
+                                        backgroundColor = "#808000";
+                                    }
+                                    else if (leaveRecord != default)
+                                    {
+                                        var leaveName = leaveRecord.Leave?.ToLower() ?? "";
+                                        var leaveType = leaveRecord.LeaveType?.ToLower() ?? "";
+                                        if (leaveName == "whf")
+                                        {
+                                            backgroundColor = "#d203fc";
+                                        }
+                                        else
+                                        {
+                                            if (leaveType == "paid")
+                                            {
+                                                var matchingLeave = leaveList?.FirstOrDefault(l => l.LeaveType?.ToLower() == leaveName);
+                                                string baseColor = matchingLeave?.color ?? "#cccccc";
+                                                backgroundColor = $"linear-gradient(45deg, {baseColor} 50%, #fcf403 50%)";
+
+                                            }
+                                            // UnPaid → half red + half other color
+                                            else if (leaveType == "unpaid")
+
+                                            {
+                                                var matchingLeave = leaveList?.FirstOrDefault(l => l.LeaveType?.ToLower() == leaveName);
+                                                string baseColor = matchingLeave?.color ?? "#cccccc";
+                                                backgroundColor = $"linear-gradient(45deg, {baseColor} 50%, red 50%)";
+
+
+                                            }
+
+                                        }
+
+
+                                    }
+                                    else if (isWeekend)
+                                    {
+                                        backgroundColor = "#bdbdbd";
+                                    }
+                                    else if (isHoliday)
+                                    {
+                                        backgroundColor = "#1434A4";
+                                    }
+                                
+
+                                <td style="background:@backgroundColor"></td>
+                            }
+
+
+
+                                                <td></td>
+                           
+                            @if (leaveList != null && leaveList.Any())
+                            {
+                                foreach (var leave in leaveList)
+                                {
+                                    var leaveType = leave.LeaveType?.ToLower() ?? "";
+
+                                    double paidCount = leaveCounts.TryGetValue(("paid", leaveType), out var pCount) ? pCount : 0;
+                                    double unpaidCount = leaveCounts.TryGetValue(("unpaid", leaveType), out var uCount) ? uCount : 0;
+                                   
+                                    <td>@paidCount</td>
+                                    <td>@unpaidCount</td>
+                                }
+                            }
+
+                            @{
+                                int totalDays = 30;
+                                double unpaid = leaveCounts.Where(kvp => kvp.Key.Item1 == "unpaid").Sum(kvp => kvp.Value);
+                                double workPercentage = ((totalDays - unpaid) / totalDays) * 100;
+                            }
+                            
+                            <td>@(leaveCounts.Where(kvp => kvp.Key.Item1 == "paid").Sum(kvp => kvp.Value))</td>
+                            <td>@(leaveCounts.Where(kvp => kvp.Key.Item1 == "unpaid").Sum(kvp => kvp.Value))</td>
+                            <td>@leaveCounts.Where(kvp => kvp.Key.Item1 != "other").Sum(kvp => kvp.Value)</td>
+                            <td>@(leaveCounts.Where(kvp => kvp.Key.Item2 == "whf").Sum(kvp => kvp.Value))</td> <!-- WHF example -->
+                            <td>@(30 - leaveCounts.Where(kvp => kvp.Key.Item1 == "unpaid").Sum(kvp => kvp.Value))</td>
+
+                            <td>@workPercentage.ToString("0.0")%</td>
+
+
+
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+
+        </div>
+
+      
+    </div>
+</section>
+
+<script>
+    document.getElementById('monthPicker').addEventListener('change', function () {
+        document.getElementById('monthForm').submit(); // Submit form on date change
+    });
+</script>
